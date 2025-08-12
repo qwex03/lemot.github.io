@@ -2,7 +2,6 @@ let board = document.querySelector('.board');
 let word = [];
 let lockedRows = new Set();
 
-
 const toggleBtn = document.querySelector('#toggle-theme');
 
 toggleBtn.addEventListener('click', () => {
@@ -103,7 +102,7 @@ function getRowValues(rowIndex) {
             }
         });
 
-        input.addEventListener('keydown', function(event) {
+        input.addEventListener('keyup', function(event) {  
             let rowIndex = Math.floor(index / 5);
             let colIndex = index % 5;
 
@@ -121,7 +120,6 @@ function getRowValues(rowIndex) {
 
             if (event.key === 'Enter') {
                 lockedRows.add(rowIndex);                
-                
                 let letters = getRowValues(rowIndex);
                 console.log("Ligne " + rowIndex + " :", letters);
 
