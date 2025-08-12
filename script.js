@@ -7,7 +7,6 @@ const toggleBtn = document.querySelector('#toggle-theme');
 toggleBtn.addEventListener('click', () => {
     const html = document.documentElement;
     const isDark = html.dataset.theme !== 'light';
-
     html.dataset.theme = isDark ? 'light' : 'dark';
     toggleBtn.textContent = isDark ? '☀️' : '🌙';
 });
@@ -52,12 +51,16 @@ function getRowValues(rowIndex) {
     return values;
 }
 
-
 (async () => {
     await RandomWord();
     createBoard();
 
     let inputs = document.querySelectorAll('input');
+    const MAX_TRIES = 6; 
+
+    let currentRow = 0; 
+
+    inputs[0].focus();
 
     function VerifyWord(Index, Letters) { 
         let correctCount = 0;
@@ -77,20 +80,24 @@ function getRowValues(rowIndex) {
                             alert("🎉 Bravo, tu as gagné !");
                             inputs.forEach(inp => inp.disabled = true); 
                         }, 200);
+                    } else if (Index === MAX_TRIES - 1) {
+                        setTimeout(() => {
+                            alert(`😞 Perdu ! Le mot était : ${word.join("")}`);
+                            inputs.forEach(inp => inp.disabled = true);
+                        }, 200);
                     }
                 }
             }, i * 150);
         }
     }
 
-
-
     inputs.forEach((input, index) => {
         input.addEventListener('input', function() {
             let rowIndex = Math.floor(index / 5);
 
-            if (lockedRows.has(rowIndex)) {
-                this.value = ''; 
+            if (rowIndex !== currentRow) {
+                this.value = '';
+                inputs[currentRow * 5].focus();
                 return;
             }
 
@@ -104,30 +111,30 @@ function getRowValues(rowIndex) {
 
         input.addEventListener('keyup', function(event) {  
             let rowIndex = Math.floor(index / 5);
-            let colIndex = index % 5;
 
-            if (lockedRows.has(rowIndex)) {
+            if (rowIndex !== currentRow) {
                 event.preventDefault();
+                inputs[currentRow * 5].focus();
                 return;
             }
 
             if (event.key === 'Backspace' && this.value.length === 0) {
                 let previousInput = inputs[index - 1];
-                if (previousInput && !lockedRows.has(Math.floor((index - 1) / 5))) {
+                if (previousInput && Math.floor((index - 1) / 5) === currentRow) {
                     previousInput.focus();
                 }
             }
 
             if (event.key === 'Enter') {
-                lockedRows.add(rowIndex);                
-                let letters = getRowValues(rowIndex);
-                console.log("Ligne " + rowIndex + " :", letters);
+                lockedRows.add(currentRow);
 
-                VerifyWord(rowIndex, letters);
-                
-                let nextRowFirstInput = inputs[(rowIndex + 1) * 5];
-                if (nextRowFirstInput) {
-                    nextRowFirstInput.focus();
+                let letters = getRowValues(currentRow);
+                VerifyWord(currentRow, letters);
+
+                currentRow++;  
+
+                if (currentRow < MAX_TRIES) {
+                    inputs[currentRow * 5].focus();
                 }
             }
         });
